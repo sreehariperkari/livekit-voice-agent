@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export function createToken(identity: string) {
+// In livekit-server-sdk v2, toJwt() returns Promise<string>
+export async function createToken(identity: string): Promise<string> {
   const at = new AccessToken(
     process.env.LIVEKIT_API_KEY!,
     process.env.LIVEKIT_API_SECRET!,

@@ -1,0 +1,5 @@
+export enum AgentState {
+  LISTENING = "LISTENING",
+  PROCESSING = "PROCESSING",
+  SPEAKING = "SPEAKING"
+}

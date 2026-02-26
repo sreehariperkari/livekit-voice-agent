@@ -97,7 +97,7 @@ npm install
 cp .env.example .env
 # Edit .env with your credentials
 ```
-#### Copy the env variables
+#### Copy the env variables 
 ```bash
 LIVEKIT_URL=wss://revrag-sse-xbp8vkho.livekit.cloud
 LIVEKIT_API_KEY=API4DM3QL3Um7po

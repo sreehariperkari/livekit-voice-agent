@@ -8,6 +8,9 @@ import {
 } from "@livekit/rtc-node";
 
 import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, "../.env"), override: true });
 
 import { AgentState } from "./state";
 import { updateState, resetSilenceTimer, setSpeakCallback } from "./silence";
@@ -115,16 +118,13 @@ async function startAgent() {
 
         try {
           for await (const frame of audioStream) {
-            // ── No-overlap: interrupt agent the moment the user speaks ────
+            // ── No-overlap: interrupt agent only when user actually speaks ─
             //
-            // HOW IT WORKS:
-            // We check isSpeakingNow() (the real TTS playback flag in tts.ts)
-            // rather than agent.ts's local `state` enum.  Using the local state
-            // enum was broken because tts.ts updates silence.ts's state copy —
-            // not agent.ts's — so `state === SPEAKING` was always false here.
-            // isSpeakingNow() reads `isSpeaking` directly from tts.ts, making
-            // the check always accurate regardless of which code path triggered TTS.
-            if (isSpeakingNow()) {
+            // We gate on hasAudioEnergy() so that silent frames arriving while
+            // the agent is fetching/converting audio do NOT trigger a spurious
+            // interrupt.  Without this gate, every silent frame during the
+            // async MP3 fetch sets isSpeaking=false before playback even starts.
+            if (isSpeakingNow() && hasAudioEnergy(frame)) {
               console.log("User interrupted — stopping agent speech");
               stopSpeaking();
               state = AgentState.LISTENING;

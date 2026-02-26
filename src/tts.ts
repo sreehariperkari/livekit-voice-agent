@@ -100,22 +100,33 @@ export async function speak(text: string): Promise<void> {
     );
 
     const totalFrames = Math.floor(int16Data.length / SAMPLES_PER_FRAME);
-    console.log(`[TTS] Sending ${totalFrames} frames (${(totalFrames * 10).toFixed(0)} ms of audio)`);
+    const FRAME_DURATION_MS = (SAMPLES_PER_FRAME / SAMPLE_RATE) * 1000; // 10 ms
+    console.log(`[TTS] Sending ${totalFrames} frames (${(totalFrames * FRAME_DURATION_MS).toFixed(0)} ms of audio)`);
 
-    // ── Step 3: send PCM in 10ms chunks ──────────────────────────────
-    // Sending the entire buffer as one frame does not work — LiveKit requires
-    // a steady stream of fixed-duration frames (here: 10ms = 480 samples).
-    // We also check isSpeaking between frames to allow mid-utterance interrupts.
+    // ── Step 3: send PCM in 10ms chunks at real-time pace ────────────
+    // LiveKit's playout engine expects frames at a steady real-time rate.
+    // Pushing all frames at once overflows the jitter buffer and the audio
+    // is silently dropped.  We track wall-clock time and sleep the exact
+    // deficit before each frame so the cadence stays ~10 ms per frame.
     //
     // IMPORTANT: use .slice() not .subarray().
     // subarray() creates a view with a non-zero byteOffset; some native code
     // inside LiveKit's NAPI layer reads data.buffer from offset 0, which would
     // send the wrong bytes.  slice() always produces a fresh zero-offset copy.
     let framesSent = 0;
+    const startTime = Date.now();
     for (let offset = 0; offset + SAMPLES_PER_FRAME <= int16Data.length; offset += SAMPLES_PER_FRAME) {
       if (!isSpeaking) {
         console.log(`[TTS] Playback interrupted after ${framesSent} frames`);
         break;
+      }
+
+      // Pace to real time: sleep until the next frame's scheduled wall-clock time.
+      const expectedMs = framesSent * FRAME_DURATION_MS;
+      const elapsedMs = Date.now() - startTime;
+      const sleepMs = expectedMs - elapsedMs;
+      if (sleepMs > 0) {
+        await new Promise<void>(resolve => setTimeout(resolve, sleepMs));
       }
 
       const chunk = int16Data.slice(offset, offset + SAMPLES_PER_FRAME);

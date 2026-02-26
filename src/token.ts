@@ -1,7 +1,8 @@
 import { AccessToken } from "livekit-server-sdk";
 import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env"), override: true });
 
 // In livekit-server-sdk v2, toJwt() returns Promise<string>
 export async function createToken(identity: string): Promise<string> {

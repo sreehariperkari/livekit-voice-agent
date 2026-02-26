@@ -97,6 +97,15 @@ npm install
 cp .env.example .env
 # Edit .env with your credentials
 ```
+#### Copy the env variables
+```bash
+LIVEKIT_URL=wss://revrag-sse-xbp8vkho.livekit.cloud
+LIVEKIT_API_KEY=API4DM3QL3Um7po
+LIVEKIT_API_SECRET=ZflB9dxyrkKJ4QUfWmj94D7oBZzUwTXHzQx8C8tAycO
+DEEPGRAM_API_KEY=205294930af817edc5b1d15bf6e4784949abbc91
+ROOM_NAME=test-room
+```
+
 
 ### Required environment variables
 

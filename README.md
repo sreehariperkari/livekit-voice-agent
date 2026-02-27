@@ -123,7 +123,15 @@ ROOM_NAME=test-room
 npm run dev
 ```
 
-The agent prints a **browser-user token** on startup. Paste it into your LiveKit sandbox URL or any WebRTC client to join the same room and talk to the agent.
+On startup the agent will:
+1. Generate a **browser-user token**
+2. Construct the LiveKit Meet playground URL:
+   ```
+   https://meet.livekit.io/custom?liveKitUrl=wss://revrag-sse-xbp8vkho.livekit.cloud&token=<token>
+   ```
+3. **Automatically open it in your default browser** — no copy-paste needed.
+
+The token is also printed to the console in case you need to share or reuse it.
 
 ---
 

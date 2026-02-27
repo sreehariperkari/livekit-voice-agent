@@ -17,6 +17,7 @@ import { updateState, resetSilenceTimer, setSpeakCallback } from "./silence";
 import { startSTT, STTHandle } from "./stt";
 import { speak, registerRoom, stopSpeaking, isSpeakingNow } from "./tts";
 import { createToken } from "./token";
+import { exec } from "child_process";
 
 dotenv.config();
 
@@ -43,9 +44,13 @@ function hasAudioEnergy(frame: AudioFrame): boolean {
 // ----- Entry point -----
 async function startAgent() {
   try {
-    // Print browser-user token so a web client can join the same room for testing
+    // Print browser-user token and open the LiveKit playground in the browser
     const browserToken = await createToken("browser-user");
-    console.log("\nBrowser user token (paste into <livekit_url>/custom):\n", browserToken, "\n");
+    const livekitUrl = "wss://revrag-sse-xbp8vkho.livekit.cloud";
+    const playgroundUrl = `https://meet.livekit.io/custom?liveKitUrl=${encodeURIComponent(livekitUrl)}&token=${encodeURIComponent(browserToken)}`;
+    console.log("\nBrowser user token:\n", browserToken, "\n");
+    console.log("Opening LiveKit playground:\n", playgroundUrl, "\n");
+    exec(`${process.env.BROWSER || "xdg-open"} "${playgroundUrl}"`);
 
     const agentToken = await createToken("voice-agent");
 
